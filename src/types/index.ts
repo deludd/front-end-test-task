@@ -29,6 +29,18 @@ export interface User {
 	role: string;
 }
 
+// Authorization
+export interface LoginCredentials {
+	email: string;
+	password: string;
+}
+
+export interface LoginResponse {
+	success: boolean;
+	user?: User;
+	error?: string;
+}
+
 // Cat model interface
 export interface CatBreed {
 	weight: { imperial: string; metric: string };

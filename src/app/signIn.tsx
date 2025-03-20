@@ -1,43 +1,42 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "../store/store";
 import {
-	loginFailure,
 	loginStart,
 	loginSuccess,
+	loginFailure,
 } from "../store/slices/authSlice";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import { LoginSchema } from "../utils/validationSchemas";
+import { authService } from "../services/authService";
 
-const SignInPage: any = () => {
-	const navigate: any = useNavigate();
-	const dispatch: any = useAppDispatch();
-	const isAuthenticated: any = useAppSelector(
-		(state: any) => state.auth.isAuthenticated,
+const SignInPage: React.FC = () => {
+	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
+	const { isAuthenticated, loading, error } = useAppSelector(
+		(state) => state.auth
 	);
 
-	const [email, setEmail]: any = React.useState("");
-	const [password, setPassword]: any = React.useState("");
-
-	React.useEffect(() => {
+	useEffect(() => {
 		if (isAuthenticated === true) navigate("/");
 	}, [isAuthenticated, navigate]);
 
-	async function handleSubmit(e: any) {
-		e.preventDefault();
-		dispatch(loginStart());
-
-		await new Promise((r) => setTimeout(r, 1000));
-
-		if (email && password) {
-			dispatch(
-				loginSuccess({
-					email: email,
-					name: email.split("@")[0],
-					id: Math.random(),
-					role: "user",
-				}),
-			);
-		} else dispatch(loginFailure("Please fill all fields"));
-	}
+	const handleSubmit = async (values: { email: string; password: string }) => {
+		try {
+			dispatch(loginStart());
+			
+			const response = await authService.login(values);
+			
+			if (response.success && response.user) {
+				dispatch(loginSuccess(response.user));
+				navigate("/");
+			} else {
+				dispatch(loginFailure(response.error || "Unknown error occurred"));
+			}
+		} catch (error) {
+			dispatch(loginFailure("An error occurred during login"));
+		}
+	};
 
 	return (
 		<div className="h-screen flex items-center justify-center bg-gray-50">
@@ -47,45 +46,85 @@ const SignInPage: any = () => {
 						Sign In
 					</h1>
 
-					<form onSubmit={handleSubmit}>
-						<div className="mb-4">
-							<label htmlFor="email" className="block text-sm font-medium mb-2">
-								Email address
-							</label>
-							<input
-								type="email"
-								id="email"
-								name="email"
-								className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500"
-								required
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-							/>
+					{error && (
+						<div className="mb-4 p-4 text-sm text-red-800 bg-red-50 rounded-lg">
+							{error}
 						</div>
+					)}
 
-						<div className="mb-6">
-							<label
-								htmlFor="password"
-								className="block text-sm font-medium mb-2">
-								Password
-							</label>
-							<input
-								type="password"
-								id="password"
-								name="password"
-								className="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500"
-								required
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-							/>
-						</div>
+					<Formik
+						initialValues={{ email: "", password: "" }}
+						validationSchema={LoginSchema}
+						onSubmit={handleSubmit}
+					>
+						{({ errors, touched }) => (
+							<Form>
+								<div className="mb-4">
+									<label htmlFor="email" className="block text-sm font-medium mb-2">
+										Email address
+									</label>
+									<Field
+										type="email"
+										id="email"
+										name="email"
+										className={`py-3 px-4 block w-full border ${
+											errors.email && touched.email
+												? "border-red-500 focus:border-red-500 focus:ring-red-500"
+												: "border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+										} rounded-lg text-sm`}
+									/>
+									<ErrorMessage
+										name="email"
+										component="p"
+										className="mt-1 text-sm text-red-600"
+									/>
+								</div>
 
-						<button
-							type="submit"
-							className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
-							Sign in
-						</button>
-					</form>
+								<div className="mb-6">
+									<label
+										htmlFor="password"
+										className="block text-sm font-medium mb-2"
+									>
+										Password
+									</label>
+									<Field
+										type="password"
+										id="password"
+										name="password"
+										className={`py-3 px-4 block w-full border ${
+											errors.password && touched.password
+												? "border-red-500 focus:border-red-500 focus:ring-red-500"
+												: "border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+										} rounded-lg text-sm`}
+									/>
+									<ErrorMessage
+										name="password"
+										component="p"
+										className="mt-1 text-sm text-red-600"
+									/>
+								</div>
+
+								<button
+									type="submit"
+									disabled={loading}
+									className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+								>
+									{loading ? (
+										<>
+											<span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent text-white rounded-full mr-2"></span>
+											Signing in...
+										</>
+									) : (
+										"Sign in"
+									)}
+								</button>
+								
+								<div className="mt-4 text-center text-sm text-gray-500">
+									<p>Demo credentials: test@test.test / password</p>
+								</div>
+							</Form>
+						)}
+					</Formik>
 				</div>
 			</div>
 		</div>

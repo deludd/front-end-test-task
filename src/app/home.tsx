@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useAppSelector } from "../store/store";
+import { useAppSelector, useAppDispatch } from "../store/store";
+import { logout } from "../store/slices/authSlice";
 import {
 	BarChart,
 	Bar,
@@ -28,9 +29,11 @@ const COLORS: any = [
 
 const HomePage: any = () => {
 	const navigate: any = useNavigate();
+	const dispatch = useAppDispatch();
 	const isAuthenticated: any = useAppSelector(
 		(state: any) => state.auth.isAuthenticated,
 	);
+	const userInfo = useAppSelector((state: any) => state.auth.userInfo);
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
@@ -55,13 +58,18 @@ const HomePage: any = () => {
 	const [lapData, setLapData] = React.useState([]);
 	const [lifeSpanData, setLifeSpanData] = React.useState([]);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!isAuthenticated) {
 			navigate("/sign-in");
 		}
 	}, [isAuthenticated, navigate]);
 
-	React.useEffect(() => {
+	const handleLogout = () => {
+		dispatch(logout());
+		navigate("/sign-in");
+	};
+
+	useEffect(() => {
 		if (!cats.length) return;
 
 		setAdaptabilityData(
@@ -126,7 +134,18 @@ const HomePage: any = () => {
 
 	return (
 		<div className="container mx-auto px-4 py-8">
-			<h1 className="text-4xl font-bold mb-8">Cat Breeds Statistics</h1>
+			<div className="flex justify-between items-center mb-8">
+				<h1 className="text-4xl font-bold">Cat Breeds Statistics</h1>
+				<div className="flex items-center space-x-4">
+					<span className="text-gray-600">Welcome, {userInfo.name}</span>
+					<button
+						onClick={handleLogout}
+						className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+					>
+						Log Out
+					</button>
+				</div>
+			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 				{/* Adaptability Chart */}
