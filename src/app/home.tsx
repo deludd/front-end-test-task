@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, NavigateFunction } from "react-router";
 import { useAppSelector, useAppDispatch } from "../store/store";
 import { logout } from "../store/slices/authSlice";
+import { useGetBreedsQuery } from "../services/catsService";
+import { CatBreed, ChartDataPoint, LifeSpanDataPoint } from "../types";
 import {
 	BarChart,
 	Bar,
@@ -18,7 +20,7 @@ import {
 	Line,
 } from "recharts";
 
-const COLORS: any = [
+const COLORS: string[] = [
 	"#0088FE",
 	"#00C49F",
 	"#FFBB28",
@@ -27,36 +29,22 @@ const COLORS: any = [
 	"#82ca9d",
 ];
 
-const HomePage: any = () => {
-	const navigate: any = useNavigate();
+const HomePage: React.FC = () => {
+	const navigate: NavigateFunction = useNavigate();
 	const dispatch = useAppDispatch();
-	const isAuthenticated: any = useAppSelector(
-		(state: any) => state.auth.isAuthenticated,
+	const isAuthenticated = useAppSelector(
+		(state) => state.auth.isAuthenticated
 	);
-	const userInfo = useAppSelector((state: any) => state.auth.userInfo);
+	const userInfo = useAppSelector((state) => state.auth.userInfo);
 
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [cats, setCats] = useState([
-		{
-			name: "Coralcat",
-			origin: "Ukraine",
-			description:
-				"Coralcat is a breed of cat that is known for its long, luxurious fur and expressive eyes.",
-			adaptability: 100,
-			affectionLevel: 100,
-			lifeSpan: 100,
-			indoor: 1,
-			lap: 1,
-		},
-	]);
+	const { data: cats = [], isLoading, error } = useGetBreedsQuery({});
 
-	const [adaptabilityData, setAdaptabilityData] = React.useState([]);
-	const [affectionData, setAffectionData] = React.useState([]);
-	const [originData, setOriginData] = React.useState([]);
-	const [indoorData, setIndoorData] = React.useState([]);
-	const [lapData, setLapData] = React.useState([]);
-	const [lifeSpanData, setLifeSpanData] = React.useState([]);
+	const [adaptabilityData, setAdaptabilityData] = useState<ChartDataPoint[]>([]);
+	const [affectionData, setAffectionData] = useState<ChartDataPoint[]>([]);
+	const [originData, setOriginData] = useState<ChartDataPoint[]>([]);
+	const [indoorData, setIndoorData] = useState<ChartDataPoint[]>([]);
+	const [lapData, setLapData] = useState<ChartDataPoint[]>([]);
+	const [lifeSpanData, setLifeSpanData] = useState<LifeSpanDataPoint[]>([]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -73,27 +61,33 @@ const HomePage: any = () => {
 		if (!cats.length) return;
 
 		setAdaptabilityData(
-			cats.map((cat: any) => ({
+			cats.slice(0, 10).map((cat: CatBreed) => ({
 				name: cat.name,
-				value: Math.random() * 10,
+				value: cat.adaptability,
 			})),
 		);
 
 		setAffectionData(
-			cats.map((cat: any) => ({
+			cats.slice(0, 10).map((cat: CatBreed) => ({
 				name: cat.name,
-				value: Math.random() * 10,
+				value: cat.affection_level,
 			})),
 		);
 
+		const originCounts: Record<string, number> = {};
+		cats.forEach((cat: CatBreed) => {
+			const origin = cat.origin || "Unknown";
+			originCounts[origin] = (originCounts[origin] || 0) + 1;
+		});
+		
 		setOriginData(
-			cats.map((cat: any) => ({
-				name: cat.origin || "Unknown",
-				value: Math.random() * 10,
-			})),
+			Object.entries(originCounts)
+				.map(([name, value]) => ({ name, value }))
+				.sort((a, b) => b.value - a.value)
+				.slice(0, 6)
 		);
 
-		const indoorCount = cats.reduce((acc: any, cat: any) => {
+		const indoorCount = cats.reduce((acc: {indoor?: number; outdoor?: number}, cat: CatBreed) => {
 			if (cat.indoor === 1) {
 				acc.indoor = (acc.indoor || 0) + 1;
 			} else {
@@ -107,27 +101,44 @@ const HomePage: any = () => {
 			{ name: "Outdoor", value: indoorCount.outdoor || 0 },
 		]);
 
+		const lapCats = cats.filter((cat: CatBreed) => cat.lap === 1).length;
+		const nonLapCats = cats.filter((cat: CatBreed) => cat.lap === 0 || cat.lap === undefined).length;
+		
 		setLapData([
-			{ name: "Lap Cat", value: Math.random() * 100 },
-			{ name: "Not Lap Cat", value: Math.random() * 100 },
+			{ name: "Lap Cat", value: lapCats },
+			{ name: "Not Lap Cat", value: nonLapCats },
 		]);
 
 		setLifeSpanData(
-			cats.map((cat: any) => ({
-				name: cat.name,
-				years: Math.random() * 2000,
-			})),
+			cats.slice(0, 10).map((cat: CatBreed) => {
+				const lifeSpanParts = cat.life_span.split('-')
+					.map((part: string) => parseInt(part.trim()))
+					.filter((num: number) => !isNaN(num));
+					
+				const averageLifeSpan = lifeSpanParts.length > 0 
+					? lifeSpanParts.reduce((a: number, b: number) => a + b, 0) / lifeSpanParts.length
+					: 0;
+				
+				return {
+					name: cat.name,
+					years: averageLifeSpan,
+				};
+			}),
 		);
 	}, [cats]);
 
-	if (isLoading || error) {
+	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-screen">
-				{isLoading ? (
-					<div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-blue-600 rounded-full" />
-				) : (
-					<div className="text-red-500">Error loading cats data</div>
-				)}
+				<div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-blue-600 rounded-full" />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex items-center justify-center h-screen">
+				<div className="text-red-500">Error loading cats data</div>
 			</div>
 		);
 	}
@@ -195,8 +206,9 @@ const HomePage: any = () => {
 									cx="50%"
 									cy="50%"
 									outerRadius={100}
-									label>
-									{originData.map((_: any, index: any) => (
+									label
+								>
+									{originData.map((_: ChartDataPoint, index: number) => (
 										<Cell
 											key={`cell-${index}`}
 											fill={COLORS[index % COLORS.length]}
@@ -225,8 +237,9 @@ const HomePage: any = () => {
 									cx="50%"
 									cy="50%"
 									outerRadius={100}
-									label>
-									{indoorData.map((_: any, index: any) => (
+									label
+								>
+									{indoorData.map((_: ChartDataPoint, index: number) => (
 										<Cell
 											key={`cell-${index}`}
 											fill={COLORS[index % COLORS.length]}
@@ -253,8 +266,9 @@ const HomePage: any = () => {
 									cx="50%"
 									cy="50%"
 									outerRadius={100}
-									label>
-									{lapData.map((_: any, index: any) => (
+									label
+								>
+									{lapData.map((_: ChartDataPoint, index: number) => (
 										<Cell
 											key={`cell-${index}`}
 											fill={COLORS[index % COLORS.length]}
@@ -287,13 +301,14 @@ const HomePage: any = () => {
 
 			{/* Cats Grid */}
 			<div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-				{[].map((cat: any) => (
+				{cats.map((cat: CatBreed) => (
 					<div
-						key={Math.random()}
-						className="group flex flex-col h-full bg-white border border-gray-200 shadow-sm rounded-xl">
+						key={cat.id}
+						className="group flex flex-col h-full bg-white border border-gray-200 shadow-sm rounded-xl"
+					>
 						<div className="p-4 md:p-6">
 							<h3 className="text-xl font-semibold text-gray-800 mb-2">
-								{cat.naming}
+								{cat.name}
 							</h3>
 							<span className="block mb-1 text-xs font-semibold uppercase text-blue-600">
 								Origin: {cat.origin || "Unknown"}
@@ -304,15 +319,15 @@ const HomePage: any = () => {
 							<div className="mt-4 space-y-2">
 								<div className="flex justify-between">
 									<span>Adaptability:</span>
-									<span>{Math.floor(Math.random() * 5) + 1}/5</span>
+									<span>{cat.adaptability}/5</span>
 								</div>
 								<div className="flex justify-between">
 									<span>Affection Level:</span>
-									<span>{Math.floor(Math.random() * 5) + 1}/5</span>
+									<span>{cat.affection_level}/5</span>
 								</div>
 								<div className="flex justify-between">
 									<span>Life Span:</span>
-									<span>{Math.floor(Math.random() * 10) + 10} years</span>
+									<span>{cat.life_span} years</span>
 								</div>
 							</div>
 						</div>

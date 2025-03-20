@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CatBreed } from "../types";
+import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { CatBreed, CatImage } from "../types";
 
 export interface GetBreedsParams {
 	limit?: number;
@@ -7,11 +7,22 @@ export interface GetBreedsParams {
 	attach_breed?: 0 | 1;
 }
 
+const API_URL = "https://api.thecatapi.com/v1";
+
 const baseQuery = fetchBaseQuery({
-	baseUrl: "/",
+	baseUrl: API_URL,
+	prepareHeaders: (headers) => {
+		headers.set('x-api-key', import.meta.env.VITE_CATS_API_KEY);
+
+		return headers;
+	}
 });
 
-const baseQueryWithRetry = async (args: any, api: any, extraOptions: any) => {
+const baseQueryWithRetry: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
 	let result = await baseQuery(args, api, extraOptions);
 	if (result.error) {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -25,9 +36,24 @@ export const catsApi = createApi({
 	baseQuery: baseQueryWithRetry,
 	endpoints: (builder) => ({
 		getBreeds: builder.query<CatBreed[], GetBreedsParams>({
-			query: () => "/breeds",
+			query: (params = {}) => ({
+				url: "/breeds",
+				params,
+			}),
+		}),
+		getBreedById: builder.query<CatBreed, string>({
+			query: (id) => `/breeds/${id}`,
+		}),
+		getBreedImages: builder.query<CatImage[], { breedId: string; limit?: number }>({
+			query: ({ breedId, limit = 1 }) => ({
+				url: "/images/search",
+				params: {
+					breed_ids: breedId,
+					limit,
+				},
+			}),
 		}),
 	}),
 });
 
-export const { useGetBreedsQuery } = catsApi;
+export const { useGetBreedsQuery, useGetBreedByIdQuery, useGetBreedImagesQuery } = catsApi;

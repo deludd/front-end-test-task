@@ -1,10 +1,3 @@
-// Redux State types
-export interface RootState {
-	auth: AuthState;
-	cats: any;
-	[key: string]: any;
-}
-
 // Auth state interface
 export interface AuthState {
 	isAuthenticated: boolean;
@@ -41,7 +34,18 @@ export interface LoginResponse {
 	error?: string;
 }
 
-// Cat model interface
+// Graph data interfaces
+export interface ChartDataPoint {
+	name: string;
+	value: number;
+}
+
+export interface LifeSpanDataPoint {
+	name: string;
+	years: number;
+}
+
+// Cats interface
 export interface CatBreed {
 	weight: { imperial: string; metric: string };
 	id: string;
@@ -86,4 +90,25 @@ export interface CatBreed {
 		height: number;
 		url: string;
 	};
+}
+
+export interface CatsState {
+    data: CatBreed[];
+    status: 'idle' | 'loading' | 'succeeded' | 'failed';
+    error: string | null;
+}
+  
+export interface CatImage {
+    id: string;
+    url: string;
+    width: number;
+    height: number;
+    breeds?: CatBreed[];
+}
+
+// Redux State types
+export interface RootState {
+	auth: AuthState;
+	cats: CatsState;
+	[catsApi: string]: unknown;
 }
