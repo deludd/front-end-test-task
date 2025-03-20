@@ -2,11 +2,11 @@ import React from "react";
 import { Provider } from "react-redux";
 import { store } from "../store/store";
 
-type Props = {
+interface StoreProviderProps {
 	children: React.ReactNode;
-};
+}
 
-const StoreProvider = ({ children }: Props) => {
+const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 	return <Provider store={store}>{children}</Provider>;
 };
 

@@ -1,6 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AuthState, User } from "../../types";
 
-const initialState = {
+const initialState: AuthState = {
 	isAuthenticated: false,
 	user: null,
 	loading: false,
@@ -25,7 +26,7 @@ const authSlice = createSlice({
 			state.status = "loading";
 			state.data = {};
 		},
-		loginSuccess(state, { payload }) {
+		loginSuccess(state, { payload }: PayloadAction<User>) {
 			state.isAuthenticated = true;
 			state.user = payload;
 			state.loading = false;
@@ -37,25 +38,27 @@ const authSlice = createSlice({
 				...payload,
 			};
 		},
-		loginFailure(state, { payload }) {
+		loginFailure(state, { payload }: PayloadAction<string>) {
 			state.loading = false;
 			state.error = payload;
 			state.status = "failed";
 			state.data = {};
 			state.user = null;
 		},
-		logout(state) {
+		logout() {
 			return initialState;
 		},
-		updateUserInfo(state, { payload }) {
+		updateUserInfo(state, { payload }: PayloadAction<Partial<User>>) {
 			state.userInfo = {
 				...state.userInfo,
 				...payload,
 			};
-			state.user = {
-				...state.user,
-				...payload,
-			};
+			if (state.user) {
+				state.user = {
+					...state.user,
+					...payload,
+				};
+			}
 			state.data = {
 				...state.data,
 				...payload,

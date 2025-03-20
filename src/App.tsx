@@ -1,10 +1,11 @@
+import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import HomePage from "./app/home";
 import StoreProvider from "./components/StoreProvider";
-import UIProvider from "./components/UIProvider";
+import PageWrapper from "./components/PageWrapper";
 import SignInPage from "./app/signIn";
 
-const App = () => {
+const App: React.FC = () => {
 	return (
 		<StoreProvider>
 			<BrowserRouter>
@@ -29,10 +30,6 @@ const App = () => {
 			</BrowserRouter>
 		</StoreProvider>
 	);
-};
-
-const PageWrapper = ({ children }: { children: React.ReactNode }) => {
-	return <UIProvider>{children}</UIProvider>;
 };
 
 export default App;

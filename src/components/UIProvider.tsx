@@ -9,18 +9,18 @@ declare global {
 	}
 }
 
-type Props = {
+interface UIProviderProps {
 	children: React.ReactNode;
-};
+}
 
-const UIProvider = ({ children }: Props) => {
+const UIProvider: React.FC<UIProviderProps> = ({ children }) => {
 	const location = useLocation();
 
 	useEffect(() => {
 		window.HSStaticMethods.autoInit();
 	}, [location.pathname]);
 
-	return children;
+	return <>{children}</>;
 };
 
 export default UIProvider;
