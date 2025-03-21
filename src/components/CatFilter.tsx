@@ -60,30 +60,27 @@ const CatFilter: React.FC<CatFilterProps> = ({ onFilterChange, onSortChange }) =
 		const { name, value, type } = e.target;
 		const newValue = type === 'range' ? Number(value) : value;
 		
-		setFilters(prev => {
-			const newFilters = {
-				...prev,
-				[name]: newValue
-			};
-			onFilterChange(newFilters);
-			return newFilters;
-		});
-	}, [onFilterChange]);
+		const newFilters = {
+			...filters,
+			[name]: newValue
+		};
+		
+		setFilters(newFilters);
+		onFilterChange(newFilters);
+	}, [filters, onFilterChange]);
 
 	const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
 		const { value } = e.target;
 		
-		if (!value) {
-			setSortOption(INITIAL_SORT);
-			onSortChange(INITIAL_SORT);
-			return;
-		}
+		let newSortOption = INITIAL_SORT;
 		
-		const [fieldValue, direction] = value.split('-');
-		const newSortOption: SortOption = { 
-			field: fieldValue as keyof CatBreed | "", 
-			direction: direction as "asc" | "desc"
-		};
+		if (value) {
+			const [fieldValue, direction] = value.split('-');
+			newSortOption = { 
+				field: fieldValue as keyof CatBreed | "", 
+				direction: direction as "asc" | "desc"
+			};
+		}
 		
 		setSortOption(newSortOption);
 		onSortChange(newSortOption);

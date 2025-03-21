@@ -12,7 +12,10 @@ const API_URL = "https://api.thecatapi.com/v1";
 const baseQuery = fetchBaseQuery({
 	baseUrl: API_URL,
 	prepareHeaders: (headers) => {
-		headers.set('x-api-key', import.meta.env.VITE_CATS_API_KEY);
+		const apiKey = import.meta.env.VITE_CATS_API_KEY;
+		if (apiKey) {
+			headers.set('x-api-key', apiKey);
+		}
 
 		return headers;
 	}
@@ -25,9 +28,11 @@ const baseQueryWithRetry: BaseQueryFn<
 > = async (args, api, extraOptions) => {
 	let result = await baseQuery(args, api, extraOptions);
 	if (result.error) {
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		await new Promise(resolve => setTimeout(resolve, 1000));
+
 		result = await baseQuery(args, api, extraOptions);
 	}
+	
 	return result;
 };
 

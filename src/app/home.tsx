@@ -63,7 +63,12 @@ const HomePage: React.FC = () => {
 
 	const userInfo = useAppSelector((state) => state.auth.userInfo);
 
-	const { data: cats = [], isLoading, error } = useGetBreedsQuery({});
+	const { 
+		data: cats = [], 
+		isLoading, 
+		error, 
+		refetch 
+	} = useGetBreedsQuery({});
 	
 	const [filters, setFilters] = useState<FilterOptions>({
 		origin: "",
@@ -99,12 +104,31 @@ const HomePage: React.FC = () => {
 		setSortOption(newSortOption);
 	}, []);
 
+	const handleRetry = useCallback(() => {
+		refetch();
+	}, [refetch]);
+
 	if (isLoading) {
 		return <LoadingSpinner />;
 	}
 
 	if (error) {
-		return <ErrorDisplay message="Error loading cats data" />;
+		return (
+			<ErrorDisplay 
+				message="We couldn't load the cat breeds data" 
+				error={error}
+				retry={handleRetry}
+			/>
+		);
+	}
+
+	if (cats.length === 0) {
+		return (
+			<ErrorDisplay 
+				message="No cat breeds data available" 
+				retry={handleRetry}
+			/>
+		);
 	}
 
 	return (
@@ -148,8 +172,38 @@ const HomePage: React.FC = () => {
 				<h2 className="text-2xl font-bold mb-4">Cat Breeds ({filteredCats.length})</h2>
 				
 				{filteredCats.length === 0 ? (
-					<div className="text-center py-8">
-						<p className="text-gray-500">No cat breeds match your filters.</p>
+					<div className="text-center py-8 bg-gray-50 rounded-lg">
+						<svg 
+							className="mx-auto h-12 w-12 text-gray-400" 
+							fill="none" 
+							viewBox="0 0 24 24" 
+							stroke="currentColor" 
+							aria-hidden="true"
+						>
+							<path 
+								strokeLinecap="round" 
+								strokeLinejoin="round" 
+								strokeWidth="2" 
+								d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+							/>
+						</svg>
+						<p className="mt-2 text-gray-500">No cat breeds match your filters.</p>
+						<button
+							onClick={() => {
+								setFilters({
+									origin: "",
+									minAdaptability: 0,
+									minAffection: 0
+								});
+								setSortOption({
+									field: "" as "",
+									direction: "asc"
+								});
+							}}
+							className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+						>
+							Reset Filters
+						</button>
 					</div>
 				) : (
 					<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

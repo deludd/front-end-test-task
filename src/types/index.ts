@@ -1,10 +1,12 @@
+export type AuthStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
+
 // Auth state interface
 export interface AuthState {
 	isAuthenticated: boolean;
 	user: User | null;
 	loading: boolean;
 	error: string | null;
-	data: any;
+	data: User | Record<string, unknown>;
 	status: string;
 	userInfo: {
 		email: string;
@@ -104,6 +106,15 @@ export interface CatImage {
     width: number;
     height: number;
     breeds?: CatBreed[];
+}
+
+// API Error interface
+export interface ApiError {
+    status: number;
+    data: {
+        message: string;
+        details?: string;
+    };
 }
 
 // Redux State types
