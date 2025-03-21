@@ -6,6 +6,7 @@ export { default as LoginForm } from './LoginForm';
 export { default as PageHeader } from './PageHeader';
 export { default as CatCard } from './CatCard';
 export { default as ChartBox } from './ChartBox';
+export { default as CatFilter } from './CatFilter';
 
 export { default as PageWrapper } from './PageWrapper';
 

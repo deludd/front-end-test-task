@@ -37,6 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading, error }) => {
 								type="email"
 								id="email"
 								name="email"
+								autoComplete="email"
 								className={`py-3 px-4 block w-full border ${
 									errors.email && touched.email
 										? "border-red-500 focus:border-red-500 focus:ring-red-500"
@@ -61,6 +62,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading, error }) => {
 								type="password"
 								id="password"
 								name="password"
+								autoComplete="current-password"
 								className={`py-3 px-4 block w-full border ${
 									errors.password && touched.password
 										? "border-red-500 focus:border-red-500 focus:ring-red-500"
