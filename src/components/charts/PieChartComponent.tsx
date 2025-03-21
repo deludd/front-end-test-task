@@ -8,7 +8,7 @@ import {
 	ResponsiveContainer,
 } from "recharts";
 import { ChartDataPoint } from "../../types";
-import ChartBox from "../ChartBox";
+import ChartBox from "./ChartBox";
 
 export const CHART_COLORS: string[] = [
 	"#0088FE",

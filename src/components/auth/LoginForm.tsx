@@ -1,7 +1,7 @@
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { LoginSchema } from "../utils/validationSchemas";
-import { LoginCredentials } from "../types";
+import { LoginSchema } from "../../utils/validationSchemas";
+import { LoginCredentials } from "../../types";
 
 interface LoginFormProps {
 	onSubmit: (values: LoginCredentials) => Promise<void>;

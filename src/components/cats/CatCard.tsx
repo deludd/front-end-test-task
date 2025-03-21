@@ -1,5 +1,5 @@
 import React from "react";
-import { CatBreed } from "../types";
+import { CatBreed } from "../../types";
 
 interface CatCardProps {
 	cat: CatBreed;

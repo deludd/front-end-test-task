@@ -15,7 +15,7 @@ import {
 	CatFilter,
 } from "../components";
 
-import { FilterOptions, SortOption } from "../components/CatFilter";
+import { FilterOptions, SortOption } from "../components/cats/CatFilter";
 import { useCatData } from "../hooks/useCatData";
 import { CatBreed } from "../types";
 

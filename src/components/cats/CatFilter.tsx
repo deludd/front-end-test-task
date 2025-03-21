@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { CatBreed } from "../types";
+import { CatBreed } from "../../types";
 
 interface CatFilterProps {
 	onFilterChange: (filters: FilterOptions) => void;
