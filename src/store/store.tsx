@@ -17,8 +17,7 @@ const store = configureStore({
 	},
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware()
-			.concat([catsApi.middleware, customMiddleware])
-			.concat(catsApi.middleware),
+			.concat([catsApi.middleware, customMiddleware]),
 });
 
 type AppDispatch = typeof store.dispatch;
