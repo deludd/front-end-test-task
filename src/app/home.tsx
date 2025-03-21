@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useAppSelector, useAppDispatch } from "../store/store";
 import { logout } from "../store/slices/authSlice";
@@ -60,9 +60,7 @@ const applySorting = (cats: CatBreed[], sortOption: SortOption): CatBreed[] => {
 const HomePage: React.FC = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	const isAuthenticated = useAppSelector(
-		(state) => state.auth.isAuthenticated
-	);
+
 	const userInfo = useAppSelector((state) => state.auth.userInfo);
 
 	const { data: cats = [], isLoading, error } = useGetBreedsQuery({});
@@ -87,12 +85,6 @@ const HomePage: React.FC = () => {
 	}, [cats, filters, sortOption]);
 
 	const chartData = useCatData(cats);
-
-	useEffect(() => {
-		if (!isAuthenticated) {
-			navigate("/sign-in");
-		}
-	}, [isAuthenticated, navigate]);
 
 	const handleLogout = useCallback(() => {
 		dispatch(logout());
